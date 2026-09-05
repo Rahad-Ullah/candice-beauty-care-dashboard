@@ -20,7 +20,17 @@ const bookingApi = baseApi.injectEndpoints({
             },
             providesTags: ['Booking'],
         }),
+        reassignOrder: builder.mutation({
+            query: ({ bookingId, artistId }) => {
+                return {
+                    url: `/service/reassign-order/${bookingId}/${artistId}`,
+                    method: 'PATCH',
+                };
+            },
+            invalidatesTags: ['Booking', 'Bookings'],
+        }),
     }),
 });
 
-export const { useGetAllBookingsQuery, useGetSingleBookingQuery } = bookingApi;
+export const { useGetAllBookingsQuery, useGetSingleBookingQuery, useReassignOrderMutation } = bookingApi;
+

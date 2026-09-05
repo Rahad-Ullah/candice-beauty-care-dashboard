@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { useGetSingleBookingQuery } from '../../../redux/features/booking/bookingApi';
 import { useParams } from 'react-router-dom';
 import { IMAGE_URL } from '../../../redux/api/baseApi';
 import Loader from '../../../components/ui/Loader';
+import { Button } from 'antd';
+import { UserCheck } from 'lucide-react';
+import AssignArtistModal from './components/AssignArtistModal';
 
 const BookingDetailsPage = () => {
     const { id } = useParams();
     const { data, isLoading } = useGetSingleBookingQuery({ id });
     const booking = data?.data;
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
     if (isLoading) {
         return (
@@ -29,22 +34,22 @@ const BookingDetailsPage = () => {
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Client name</span>
                                 <span>:</span>
-                                <span>{booking?.userId?.name}</span>
+                                <span>{booking?.userId?.name || 'N/A'}</span>
                             </p>
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Email</span>
                                 <span>:</span>
-                                <span>{booking?.userId?.email}</span>
+                                <span>{booking?.userId?.email || 'N/A'}</span>
                             </p>
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Booking Date</span>
                                 <span>:</span>
-                                <span>{booking?.service_date?.split('T')[0]}</span>
+                                <span>{booking?.service_date?.split('T')[0] || 'N/A'}</span>
                             </p>
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Subscription plan</span>
                                 <span>:</span>
-                                <span>{booking?.userId?.subscription?.package?.name}</span>
+                                <span>{booking?.userId?.subscription?.package?.name || 'N/A'}</span>
                             </p>
                         </div>
                     </div>
@@ -54,23 +59,34 @@ const BookingDetailsPage = () => {
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Artist name</span>
                                 <span>:</span>
-                                <span>{booking?.artiestId?.name}</span>
+                                <span>{booking?.artiestId?.name || 'Not assigned'}</span>
                             </p>
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Email</span>
                                 <span>:</span>
-                                <span>{booking?.artiestId?.email}</span>
+                                <span>{booking?.artiestId?.email || 'N/A'}</span>
                             </p>
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Booking Date</span>
                                 <span>:</span>
-                                <span>{booking?.artist_book_date?.split('T')[0]}</span>
+                                <span>{booking?.artist_book_date?.split('T')[0] || 'N/A'}</span>
                             </p>
                             <p className="grid grid-cols-3 gap-2">
                                 <span>Subscription plan</span>
                                 <span>:</span>
-                                <span>{booking?.artiestId?.subscription?.package?.name}</span>
+                                <span>{booking?.artiestId?.subscription?.package?.name || 'N/A'}</span>
                             </p>
+                        </div>
+                        {/* assign artist */}
+                        <div className="mt-6">
+                            <Button
+                                type="primary"
+                                onClick={() => setIsAssignModalOpen(true)}
+                                className="h-10 px-5 font-medium rounded-lg flex items-center gap-2 bg-[#9558B7] hover:bg-[#834ba3] text-white"
+                            >
+                                <UserCheck size={18} />
+                                {booking?.artiestId ? 'Reassign Artist' : 'Assign Artist'}
+                            </Button>
                         </div>
                     </div>
                     {/* service info */}
@@ -145,8 +161,19 @@ const BookingDetailsPage = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Assign / Reassign Artist Modal */}
+            {booking && (
+                <AssignArtistModal
+                    open={isAssignModalOpen}
+                    setOpen={setIsAssignModalOpen}
+                    bookingId={id || booking?._id}
+                    currentArtist={booking?.artiestId}
+                />
+            )}
         </div>
     );
 };
 
 export default BookingDetailsPage;
+
