@@ -6,9 +6,9 @@
 
 ### Prerequisites
 
--   Node.js
--   npm
--   git
+- Node.js
+- NPM
+- Git
 
 ### Installation
 
