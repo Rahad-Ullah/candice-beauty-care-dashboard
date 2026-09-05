@@ -230,7 +230,7 @@ const AssignArtistModal: React.FC<IAssignArtistModalProps> = ({
                                 </div>
                             )
                         }
-                        popupRender={(menu: any) => (
+                        dropdownRender={(menu: React.ReactNode) => (
                             <div>
                                 {menu}
                                 {isFetching && page > 1 && (
@@ -246,12 +246,12 @@ const AssignArtistModal: React.FC<IAssignArtistModalProps> = ({
                             </div>
                         )}
                     >
-                        {artists.map((artist: any) => (
-                            <Select.Option key={artist?._id} value={artist?._id}>
+                        {artists.map((artist) => (
+                            <Select.Option key={artist._id} value={artist._id}>
                                 <div className="flex items-center gap-3 py-1">
                                     <Avatar
                                         size={32}
-                                        src={getImageUrl(artist?.profile)}
+                                        src={getImageUrl(artist.profile)}
                                         icon={<User size={16} />}
                                         className="bg-purple-100 text-purple-600 flex-shrink-0"
                                     />
