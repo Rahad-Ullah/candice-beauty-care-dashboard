@@ -315,16 +315,25 @@ const UserDetails = () => {
                             const bookingDate = order?.service_date || order?.date;
 
                             return (
-                                <article
+                                <details
                                     key={order?._id || order?.id}
                                     className="overflow-hidden rounded-xl border border-slate-200"
                                 >
-                                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3 sm:px-5">
-                                        <div className="flex min-w-0 items-center gap-2">
-                                            <Hash size={16} className="shrink-0 text-slate-400" />
-                                            <span className="truncate text-sm font-semibold text-slate-700">
-                                                Order {order?._id || 'N/A'}
-                                            </span>
+                                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 bg-slate-50 px-4 py-3 marker:hidden hover:bg-slate-100 [&::-webkit-details-marker]:hidden sm:px-5">
+                                        <div className="flex min-w-0 items-start gap-2">
+                                            <Hash size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                                            <div className="min-w-0">
+                                                <span className="block truncate text-sm font-semibold text-slate-700">
+                                                    Order {order?._id || 'N/A'}
+                                                </span>
+                                                <span className="mt-1 block truncate text-sm text-slate-600">
+                                                    {order?.serviceId?.name || 'Service unavailable'}
+                                                </span>
+                                                <span className="mt-1 block text-xs text-slate-500">
+                                                    {formatDate(order?.service_date || order?.date)}{order?.time ? ` · ${order.time}` : ''}
+                                                    {' · Total '}{formatCurrency(order?.user_totalPrice ?? order?.price)}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2">
                                             <Tag color={getStatusColor(order?.status)} className="m-0 capitalize">
@@ -335,9 +344,9 @@ const UserDetails = () => {
                                             </Tag>
                                             {order?.specficOrder && <Tag color="purple" className="m-0">Specific order</Tag>}
                                         </div>
-                                    </div>
+                                    </summary>
 
-                                    <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[1.15fr_0.85fr]">
+                                    <div className="grid gap-5 border-t border-slate-100 p-4 sm:p-5 lg:grid-cols-[1.15fr_0.85fr]">
                                         <div className="space-y-5">
                                             <div className="flex flex-wrap items-start justify-between gap-3">
                                                 <div>
@@ -458,7 +467,7 @@ const UserDetails = () => {
                                             </div>
                                         </aside>
                                     </div>
-                                </article>
+                                </details>
                             );
                         })}
                     </div>
