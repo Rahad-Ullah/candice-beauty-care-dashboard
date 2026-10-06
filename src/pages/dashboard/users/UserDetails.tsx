@@ -1,6 +1,19 @@
-import { Avatar, Empty, Select, Spin, Table, Tag } from 'antd';
+import { Avatar, Empty, Select, Spin, Tag } from 'antd';
 import type { ReactNode } from 'react';
-import { ArrowLeft, CalendarDays, CreditCard, Mail, MapPin, Phone, Scissors, ShieldCheck } from 'lucide-react';
+import {
+    ArrowLeft,
+    CalendarDays,
+    CheckCircle2,
+    Clock3,
+    CreditCard,
+    Hash,
+    Mail,
+    MapPin,
+    Phone,
+    Scissors,
+    ShieldCheck,
+    UserRound,
+} from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { IMAGE_URL } from '../../../redux/api/baseApi';
@@ -11,6 +24,26 @@ const formatDate = (value?: string) => {
     if (!value) return 'N/A';
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+};
+
+const formatCurrency = (value?: number) =>
+    `$${Number(value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const getStatusColor = (status?: string) => {
+    switch (status?.toLowerCase()) {
+        case 'completed':
+        case 'confirmed':
+        case 'active':
+            return 'green';
+        case 'cancelled':
+        case 'canceled':
+        case 'rejected':
+            return 'red';
+        case 'pending':
+            return 'gold';
+        default:
+            return 'default';
+    }
 };
 
 const InfoRow = ({ label, value }: { label: string; value: ReactNode }) => (
@@ -65,37 +98,6 @@ const UserDetails = () => {
             console.error(error);
         }
     };
-
-    const orderColumns = [
-        {
-            title: 'Artist',
-            key: 'artist',
-            render: (order: any) => {
-                const artist = order?.artiestId || order?.artistId;
-                return artist ? (
-                    <div className="flex items-center gap-2">
-                        <Avatar src={artist.profile ? `${IMAGE_URL}${artist.profile}` : undefined}>
-                            {artist.name?.[0]}
-                        </Avatar>
-                        <div>
-                            <div className="font-medium">{artist.name || 'N/A'}</div>
-                            <div className="text-xs text-slate-500">{artist.email || ''}</div>
-                        </div>
-                    </div>
-                ) : (
-                    'N/A'
-                );
-            },
-        },
-        { title: 'Service', key: 'service', render: (order: any) => order?.serviceId?.name || 'N/A' },
-        { title: 'Price', key: 'price', render: (order: any) => `$ ${order?.price ?? 0}` },
-        { title: 'Location', dataIndex: 'address', key: 'location', render: (value: string) => value || 'N/A' },
-        {
-            title: 'Appointment',
-            key: 'appointment',
-            render: (order: any) => (order?.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A'),
-        },
-    ];
 
     if (isLoading) {
         return (
@@ -297,18 +299,174 @@ const UserDetails = () => {
             </section>
 
             <section className="rounded-2xl bg-white p-5 shadow-sm sm:p-6">
-                <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-slate-900">Recent orders</h3>
-                    <p className="text-sm text-slate-500">Latest booking activity for this user</p>
+                <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                        <h3 className="text-lg font-semibold text-slate-900">Recent orders</h3>
+                        <p className="text-sm text-slate-500">Booking details and payment breakdown</p>
+                    </div>
+                    <Tag className="m-0 rounded-full">{orderData.length} {orderData.length === 1 ? 'order' : 'orders'}</Tag>
                 </div>
-                <Table
-                    columns={orderColumns}
-                    dataSource={orderData}
-                    rowKey={(order: any) => order?._id || order?.id}
-                    locale={{ emptyText: <Empty description="No recent orders" /> }}
-                    scroll={{ x: 650 }}
-                    pagination={orderData.length > 5 ? { pageSize: 5 } : false}
-                />
+                {orderData.length ? (
+                    <div className="space-y-5">
+                        {orderData.map((order: any) => {
+                            const artist = order?.artiestId || order?.artistId;
+                            const client = order?.userId;
+                            const addOns = order?.addOns ?? [];
+                            const bookingDate = order?.service_date || order?.date;
+
+                            return (
+                                <article
+                                    key={order?._id || order?.id}
+                                    className="overflow-hidden rounded-xl border border-slate-200"
+                                >
+                                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3 sm:px-5">
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <Hash size={16} className="shrink-0 text-slate-400" />
+                                            <span className="truncate text-sm font-semibold text-slate-700">
+                                                Order {order?._id || 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Tag color={getStatusColor(order?.status)} className="m-0 capitalize">
+                                                {order?.status || 'Unknown'}
+                                            </Tag>
+                                            <Tag color={order?.isBooked ? 'blue' : 'default'} className="m-0">
+                                                {order?.isBooked ? 'Booked' : 'Not booked'}
+                                            </Tag>
+                                            {order?.specficOrder && <Tag color="purple" className="m-0">Specific order</Tag>}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[1.15fr_0.85fr]">
+                                        <div className="space-y-5">
+                                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Service</p>
+                                                    <h4 className="mt-1 text-lg font-semibold text-slate-900">
+                                                        {order?.serviceId?.name || 'Service unavailable'}
+                                                    </h4>
+                                                </div>
+                                                <div className="rounded-lg bg-violet-50 px-3 py-2 text-right">
+                                                    <p className="text-xs text-violet-700">Order total</p>
+                                                    <p className="text-lg font-bold text-violet-900">
+                                                        {formatCurrency(order?.user_totalPrice ?? order?.price)}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div className="rounded-lg bg-slate-50 p-3">
+                                                    <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                        <UserRound size={14} /> Client
+                                                    </p>
+                                                    <p className="font-medium text-slate-800">{client?.name || 'N/A'}</p>
+                                                    <p className="break-all text-xs text-slate-500">{client?.email || ''}</p>
+                                                </div>
+                                                <div className="rounded-lg bg-slate-50 p-3">
+                                                    <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                                        <Scissors size={14} /> Artist
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar
+                                                            size="small"
+                                                            src={artist?.profile ? `${IMAGE_URL}${artist.profile}` : undefined}
+                                                        >
+                                                            {artist?.name?.[0]}
+                                                        </Avatar>
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-medium text-slate-800">{artist?.name || 'Not assigned'}</p>
+                                                            <p className="break-all text-xs text-slate-500">{artist?.email || ''}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-3 text-sm sm:grid-cols-2">
+                                                <div className="flex items-start gap-2 text-slate-600">
+                                                    <CalendarDays size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                                                    <span><strong className="font-medium text-slate-800">Appointment</strong><br />{formatDate(bookingDate)}</span>
+                                                </div>
+                                                <div className="flex items-start gap-2 text-slate-600">
+                                                    <Clock3 size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                                                    <span><strong className="font-medium text-slate-800">Time</strong><br />{order?.time || 'N/A'}</span>
+                                                </div>
+                                                <div className="flex items-start gap-2 text-slate-600">
+                                                    <CalendarDays size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                                                    <span><strong className="font-medium text-slate-800">Artist assigned</strong><br />{formatDate(order?.artist_book_date)}</span>
+                                                </div>
+                                                <div className="flex items-start gap-2 text-slate-600">
+                                                    <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                                                    <span><strong className="font-medium text-slate-800">Service started</strong><br />{order?.isServiceStart ? 'Yes' : 'No'}</span>
+                                                </div>
+                                                <div className="flex items-start gap-2 text-slate-600 sm:col-span-2">
+                                                    <MapPin size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                                                    <span><strong className="font-medium text-slate-800">Address</strong><br />{order?.address || 'N/A'}</span>
+                                                </div>
+                                            </div>
+
+                                            {order?.additionalInfo && (
+                                                <div className="rounded-lg border border-amber-100 bg-amber-50 p-3">
+                                                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Additional information</p>
+                                                    <p className="mt-1 text-sm text-amber-900">{order.additionalInfo}</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <aside className="rounded-lg border border-slate-100 p-4">
+                                            <h5 className="mb-3 font-semibold text-slate-800">Price breakdown</h5>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex justify-between gap-3 text-slate-600">
+                                                    <span>Booking price</span><span>{formatCurrency(order?.price)}</span>
+                                                </div>
+                                                {addOns.map((addOn: any, index: number) => (
+                                                    <div key={addOn?._id || index} className="flex justify-between gap-3 text-slate-600">
+                                                        <span className="min-w-0 truncate">{addOn?.name || addOn?.title || 'Add-on'}</span>
+                                                        <span className="shrink-0">{formatCurrency(addOn?.price)}</span>
+                                                    </div>
+                                                ))}
+                                                {addOns.length === 0 && (
+                                                    <p className="text-xs text-slate-400">No add-ons</p>
+                                                )}
+                                                <div className="flex justify-between gap-3 border-t border-slate-100 pt-2 text-slate-600">
+                                                    <span>Application fee</span><span>{formatCurrency(order?.app_fee)}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-3 text-slate-600">
+                                                    <span>Artist fee</span><span>{formatCurrency(order?.artist_app_fee)}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-3 border-t border-slate-200 pt-3 font-semibold text-slate-900">
+                                                    <span>Client total</span>
+                                                    <span>{formatCurrency(order?.user_totalPrice ?? order?.price)}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-3 text-xs text-slate-500">
+                                                    <span>Artist receives</span><span>{formatCurrency(order?.artist_totalPrice)}</span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                                                <p className="flex items-center justify-between gap-2">
+                                                    <span>Created</span><span>{formatDate(order?.createdAt)}</span>
+                                                </p>
+                                                <p className="flex items-center justify-between gap-2">
+                                                    <span>Appointment date</span><span>{formatDate(order?.date)}</span>
+                                                </p>
+                                                <p className="flex items-center justify-between gap-2">
+                                                    <span>Refunded</span>
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <CheckCircle2 size={13} className={order?.refund ? 'text-emerald-600' : 'text-slate-300'} />
+                                                        {order?.refund ? 'Yes' : 'No'}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </aside>
+                                    </div>
+                                </article>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="rounded-xl bg-slate-50 p-8">
+                        <Empty description="No recent orders" />
+                    </div>
+                )}
             </section>
         </main>
     );
