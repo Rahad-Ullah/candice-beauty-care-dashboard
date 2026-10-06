@@ -1,18 +1,15 @@
 import { Table, Input, Select } from 'antd';
 import { Info, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useGetAllUsersQuery, useUpdateUserMutation } from '../../../redux/features/user/userApi';
 import { useUpdateSearchParams } from '../../../utils/updateSearchParams';
 import { getSearchParams } from '../../../utils/getSearchParams';
 import toast from 'react-hot-toast';
-import MyModal from '../../../components/shared/MyModal';
-import { IMAGE_URL } from '../../../redux/api/baseApi';
-import { useState } from 'react';
 
 const { Option } = Select;
 
 const Clients = () => {
-    const [modalOpen, setModalOpen] = useState(false);
-    const [activeItem, setActiveItem] = useState<any>(null);
+    const navigate = useNavigate();
 
     const { searchTerm = '', verified = '' } = getSearchParams();
     const udpateSearchParams = useUpdateSearchParams();
@@ -71,10 +68,8 @@ const Clients = () => {
                         <Option value={'false'}>Inactive</Option>
                     </Select>
                     <button
-                        onClick={() => {
-                            setModalOpen(true);
-                            setActiveItem(item);
-                        }}
+                        onClick={() => navigate(`/user-details/${item?._id}`)}
+                        aria-label={`View ${item?.name || 'client'} details`}
                         className="text-primary font-semibold rounded-md h-[35px]"
                     >
                         <Info />
@@ -142,38 +137,6 @@ const Clients = () => {
                 loading={isLoading}
                 rowClassName="hover:bg-gray-100"
             />
-            <MyModal open={modalOpen} setOpen={setModalOpen} width={500}>
-                <div className="text-base space-y-2">
-                    <div className="flex justify-center items-center gap-2">
-                        <img
-                            src={`${IMAGE_URL}${activeItem?.profile}`}
-                            alt="profile image"
-                            className="size-16 rounded-full"
-                        />
-                    </div>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>Name:</span> <span>{activeItem?.name}</span>
-                    </p>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>Email:</span> <span>{activeItem?.email}</span>
-                    </p>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>Date of birth:</span> <span>{activeItem?.dateOfBirth?.split('T')[0]}</span>
-                    </p>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>State:</span> <span>{activeItem?.state}</span>
-                    </p>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>City:</span> <span>{activeItem?.city}</span>
-                    </p>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>Zipcode:</span> <span>{activeItem?.zipCode}</span>
-                    </p>
-                    <p className="grid grid-cols-2 gap-2">
-                        <span>Street:</span> <span>{activeItem?.location}</span>
-                    </p>
-                </div>
-            </MyModal>
         </div>
     );
 };
