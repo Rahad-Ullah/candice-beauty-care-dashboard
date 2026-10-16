@@ -3,9 +3,9 @@ import { baseApi } from '../../api/baseApi';
 const bookingApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getAllBookings: builder.query({
-            query: () => {
+            query: ({ query }) => {
                 return {
-                    url: `/service`,
+                    url: `/service${query}`,
                     method: 'GET',
                 };
             },
@@ -33,4 +33,3 @@ const bookingApi = baseApi.injectEndpoints({
 });
 
 export const { useGetAllBookingsQuery, useGetSingleBookingQuery, useReassignOrderMutation } = bookingApi;
-

@@ -3,12 +3,13 @@ import { Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useGetAllBookingsQuery } from '../../../redux/features/booking/bookingApi';
 import { IMAGE_URL } from '../../../redux/api/baseApi';
+import { useUpdateSearchParams } from '../../../utils/updateSearchParams';
 
-const columns = [
+const columns = (page: number, pageSize: number) => [
     {
         title: 'ID',
         key: 'id',
-        render: (_: any, __: any, index: number) => <p key={index}># {index + 1}</p>,
+        render: (_: any, __: any, index: number) => <p key={index}># {(page - 1) * pageSize + index + 1}</p>,
     },
     {
         title: 'Client',
@@ -81,13 +82,27 @@ const columns = [
 ];
 
 const BookingTable = () => {
-    const { data, isLoading } = useGetAllBookingsQuery(undefined);
+    const updateSearchParams = useUpdateSearchParams();
+    const { data, isLoading } = useGetAllBookingsQuery({ query: location.search });
     const bookings = data?.data;
+    const pagination = data?.pagination;
+    const currentPage = pagination?.page ?? 1;
+    const pageSize = pagination?.limit ?? 10;
 
     return (
         <div>
             <ConfigProvider>
-                <Table columns={columns} dataSource={bookings} loading={isLoading} />
+                <Table
+                    columns={columns(currentPage, pageSize)}
+                    dataSource={bookings}
+                    loading={isLoading}
+                    pagination={{
+                        current: currentPage,
+                        pageSize,
+                        total: pagination?.total,
+                        onChange: (page) => updateSearchParams({ page }),
+                    }}
+                />
             </ConfigProvider>
         </div>
     );
